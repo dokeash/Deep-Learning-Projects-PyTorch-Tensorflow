@@ -9,7 +9,7 @@ import tflearn
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
-#tf.reset_default_graph()
+tf.reset_default_graph()
 TRAIN_DIR = '.\\'
 IMG_SIZE = 220
 LR = 1e-3
@@ -115,9 +115,10 @@ def train_cucumber_model():
     convnet = regression(convnet, optimizer='adam', learning_rate=LR, loss='categorical_crossentropy', name='targets')
     model = tflearn.DNN(convnet, tensorboard_dir='log',tensorboard_verbose=0)
     # Uncomment below block for Training cucumber model
-    '''train_dir = '.\\train_data_cucumber'
+    
+    train_dir = '.\\train_data_cucumber'
     #if you need to create the data:
-    #train_data = create_train_data(train_dir, 'cucumber')
+    train_data = create_train_data(train_dir, 'cucumber')
     #if you already have some saved:
     train_data = np.load('train_data_cucumber.npy')
     print('Training data loaded...')
@@ -128,7 +129,7 @@ def train_cucumber_model():
     test_x = np.array([i[0] for i in test]).reshape(-1,IMG_SIZE,IMG_SIZE,3)
     test_y = [i[1] for i in test]
     model.fit({'input': X}, {'targets': Y}, n_epoch=15, validation_set=({'input': test_x}, {'targets': test_y}),snapshot_step=5000, show_metric=True, run_id=MODEL_NAME)
-    model.save(MODEL_NAME)'''
+    model.save(MODEL_NAME)
 
     if os.path.exists('{}.meta'.format(MODEL_NAME)):
         model.load(MODEL_NAME)
@@ -160,168 +161,3 @@ def train_cucumber_model():
             y.axes.get_xaxis().set_visible(False)
             y.axes.get_yaxis().set_visible(False)
     plt.show()
-
-#training grape model
-def train_grape_model():
-    MODEL_NAME = 'plant_disease_identification_grapes-{}-{}.model'.format(LR, '2conv-basic') # just so we remember which saved model is which, sizes must match
-
-    convnet = input_data(shape=[None, IMG_SIZE, IMG_SIZE, 3], name='input')
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = fully_connected(convnet, 1024, activation='relu')
-    convnet = dropout(convnet, 0.8)
-    convnet = fully_connected(convnet, 4, activation='softmax')
-    convnet = regression(convnet, optimizer='adam', learning_rate=LR, loss='categorical_crossentropy', name='targets')
-    model = tflearn.DNN(convnet, tensorboard_dir='log',tensorboard_verbose=0)
-    #Uncomment below block for Training grape model
-    '''
-    train_dir = '.\\train_data_grapes'
-    #train_data = create_train_data(train_dir, 'grape')
-    train_data = np.load('train_data_grape.npy')
-    print('Grape training data loaded...')
-    train = train_data[:-500]
-    test = train_data[-500:]
-    X = np.array([i[0] for i in train]).reshape(-1,IMG_SIZE,IMG_SIZE,3)
-    Y = [i[1] for i in train]
-    test_x = np.array([i[0] for i in test]).reshape(-1,IMG_SIZE,IMG_SIZE,3)
-    test_y = [i[1] for i in test]
-
-    model.fit({'input': X}, {'targets': Y}, n_epoch=15, validation_set=({'input': test_x}, {'targets': test_y}),snapshot_step=5000, show_metric=True, run_id=MODEL_NAME)
-    model.save(MODEL_NAME) '''
-    if os.path.exists('{}.meta'.format(MODEL_NAME)):
-        model.load(MODEL_NAME)
-        print('Cucumber disease prediction model loaded!')
-
-    import matplotlib.pyplot as plt
-    # if you need to create the data:
-    prediction_dir='.\\prediction_data_grapes'
-    test_data = process_test_data(prediction_dir,'grape')
-    # if you already have some saved:
-    test_data = np.load('prediction_grape.npy')
-    print("Grapes prediction data loaded...")
-    fig=plt.figure()
-    with open('result_grape.csv','w') as f:
-        f.write('Id,Probablity,Label\n')
-    with open('result_grape.csv','a') as f:
-        for num,data in enumerate(test_data[:12]):
-            img_num = data[1]
-            img_data = data[0]
-
-            y = fig.add_subplot(3,4,num+1)
-            orig = img_data
-            data = img_data.reshape(IMG_SIZE,IMG_SIZE,3)
-            model_out = model.predict([data])[0]
-            if np.argmax(model_out) == 0: str_label='Black Rot'
-            elif np.argmax(model_out) == 1:str_label = 'Esca'
-            elif np.argmax(model_out) == 2: str_label = 'Healthy'
-            else: str_label='Leaf Blight'
-            f.write('{},{},{}\n'.format(img_num+'.jpeg', model_out[np.argmax(model_out)], str_label))
-            y.imshow(np.squeeze(data))
-            plt.title(str_label)
-            y.axes.get_xaxis().set_visible(False)
-            y.axes.get_yaxis().set_visible(False)
-    plt.show()
-
-#training potato model
-def train_potato_model():
-    MODEL_NAME = 'plant_disease_identification_potato-{}-{}.model'.format(LR, '2conv-basic') # just so we remember which saved model is which, sizes must match
-    convnet = input_data(shape=[None, IMG_SIZE, IMG_SIZE, 3], name='input')
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 32, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = conv_2d(convnet, 64, 5, activation='relu')
-    convnet = max_pool_2d(convnet, 5)
-
-    convnet = fully_connected(convnet, 1024, activation='relu')
-    convnet = dropout(convnet, 0.8)
-    convnet = fully_connected(convnet, 3, activation='softmax')
-    convnet = regression(convnet, optimizer='adam', learning_rate=LR, loss='categorical_crossentropy', name='targets')
-    model = tflearn.DNN(convnet, tensorboard_dir='log',tensorboard_verbose=0)
-
-    # Uncomment below block for Training potato model
-    '''
-    train_dir = '.\\train_data_potato'
-    #train_data = create_train_data(train_dir, 'potato')
-    train_data = np.load('train_data_potato.npy')
-    print('Potato training data loaded...')
-    train = train_data[:-800]
-    test = train_data[-800:]
-    X = np.array([i[0] for i in train]).reshape(-1,IMG_SIZE,IMG_SIZE,3)
-    Y = [i[1] for i in train]
-    test_x = np.array([i[0] for i in test]).reshape(-1,IMG_SIZE,IMG_SIZE,3)
-    test_y = [i[1] for i in test]
-    model.fit({'input': X}, {'targets': Y}, n_epoch=15, validation_set=({'input': test_x}, {'targets': test_y}),snapshot_step=5000, show_metric=True, run_id=MODEL_NAME)
-    model.save(MODEL_NAME)    '''
-    if os.path.exists('{}.meta'.format(MODEL_NAME)):
-        model.load(MODEL_NAME)
-        print('potato disease prediction model loaded!')
-
-    import matplotlib.pyplot as plt
-    # if you need to create the data:
-    prediction_dir='.\\prediction_data_potato'
-    test_data = process_test_data(prediction_dir,'potato')
-    # if you already have some saved:
-    test_data = np.load('prediction_potato.npy')
-    print("Potato prediction data loaded...")
-    fig=plt.figure()
-    with open('result_potato.csv','w') as f:
-        f.write('Id,Probablity,Label\n')
-    with open('result_potato.csv','a') as f:
-        for num,data in enumerate(test_data[:12]):
-            img_num = data[1]
-            img_data = data[0]
-
-            y = fig.add_subplot(3,4,num+1)
-            orig = img_data
-            data = img_data.reshape(IMG_SIZE,IMG_SIZE,3)
-            model_out = model.predict([data])[0]
-            if np.argmax(model_out) == 0: str_label='Early Blight'
-            elif np.argmax(model_out) == 1:str_label = 'Healthy'
-            else: str_label='Late Blight'
-            f.write('{},{},{}\n'.format(img_num+'.jpeg', model_out[np.argmax(model_out)], str_label))
-            y.imshow(np.squeeze(data))
-            plt.title(str_label)
-            y.axes.get_xaxis().set_visible(False)
-            y.axes.get_yaxis().set_visible(False)
-        plt.show()
-
-input_var = input("Enter Plant name: ") #grape,cucumber OR potato
-print ("Disease identification for " + input_var,"leaves...")
-if(input_var =='cucumber'):
-    train_cucumber_model()
-elif(input_var =='potato'):
-    train_potato_model()
-elif(input_var =='grape'):
-    train_grape_model()
-else:
-    print('Exit')
